@@ -3,11 +3,19 @@
 #include <stdint.h>
 
 class MCP3424 {
+private:
+  struct __helper {
+    const int channel;
+    MCP3424& mcp;
+  };
+
 public:
   void begin(bool continuous = true, int user_address = 0);
   long analogRead(int channel);
   void analogReadResolution(int resolution);
   void setGain(int gain);
+
+  inline __helper operator[](int x) { return {x, *this}; }
 
 private:
   // Configuration register bits; §5.2
@@ -29,4 +37,10 @@ private:
 
   // Write settings data to the configuration register if needed
   void write(uint8_t data, uint8_t mask);
+
+  friend long analogRead(const __helper&);
 };
+
+inline long analogRead(const MCP3424::__helper& x) {
+  return x.mcp.analogRead(x.channel);
+}
