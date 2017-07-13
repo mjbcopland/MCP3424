@@ -62,7 +62,7 @@ long MCP3424::analogRead(int channel) {
   // Normalise the output by adjusting for resolution
   output <<= (32 - resolution);
 
-  // Convert to signed and scale back down to preserving negative values
+  // Convert to signed and scale back down to preserve negative values
   return (int32_t)output / (1L << (32 - resolution));
 }
 
