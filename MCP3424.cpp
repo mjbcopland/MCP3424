@@ -13,13 +13,7 @@ void MCP3424::begin(bool continuous, int user_address) {
   Wire.write(0x06);
   Wire.endTransmission();
 
-  if (bitRead(config, OC) != continuous) {
-    bitWrite(config, OC, continuous);
-
-    Wire.beginTransmission(address);
-    Wire.write(config);
-    Wire.endTransmission();
-  }
+  write(0xFF, (int)continuous << OC);
 }
 
 long MCP3424::analogRead(int channel) {
@@ -87,12 +81,14 @@ void MCP3424::setGain(int gain) {
 void MCP3424::write(uint8_t data, uint8_t mask) {
   if ((config & mask) != (data & mask)) {
     config = (config & ~mask) | (data & mask);
-    
-    // Writing to RDY and OC initiates conversions, so we also mask these bits
-    uint8_t conversion_mask = (1 << RDY) | (1 << OC);
-    
+
+    // If we're in continuous mode then we need to initiate a new conversion to ensure
+    // that the next reading does not give data from the previous configuration.
+    // Otherwise we clear the RDY bit to ensure that we do not trigger an unwanted one-shot conversion.
+    bitWrite(config, RDY, bitRead(config, OC));
+
     Wire.beginTransmission(address);
-    Wire.write(config & ~conversion_mask);
+    Wire.write(config);
     Wire.endTransmission();
   }
 }
