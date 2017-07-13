@@ -6,6 +6,8 @@ void MCP3424::begin(bool continuous, int user_address) {
   // I2C address; §5.3.1
   address = (device_code << 3) | user_address;
 
+  Wire.begin();
+
   // General call reset; §5.4.1
   Wire.beginTransmission(0x00);
   Wire.write(0x06);
